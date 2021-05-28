@@ -1,0 +1,158 @@
+---
+title: "Categorical Embeddings"
+author: "Matthew Edwards"
+date: "24/05/2021"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+Many Machine Learning (ML) models require numerical predictors. Exceptions include tree-based algorithms (e.g. Random Forest, XGBoost). Consequently, categorical predictors are **encoded** into numerical predictors during **pre-processing**. 
+
+When the number of levels of a categorical predictor is small, methods such as:
+
+1. One-hot Encoding (`sklearn.preprocessing.OneHotEncoder()`) 
+2. Ordinal Encoding (`sklearn.preprocessing.Ordinalencoder()`)
+
+are usually sufficient. However, when the number of levels of a categorical predictor is large other methods are required.
+
+## Categorical Encoding
+
+The most common categorical encoding methods for a large number of levels are:
+
+1. Mean Encoder
+2. Target Encoder
+3. M-Estimation and James-Stein Encoder
+3. Likelihood Encoder
+4. Hashing Encoder
+5. Weight of Evidence (WOE) Encoder
+6. Entity Encoder
+
+## Notation
+
+Consider a data set $\{(X_1,Y_1),\dots,(X_n,Y_n)\}$ where $X_i$ is a categorical predictor and $Y_i$ is a binary or continuous target variable. An arbitrary categorical level is denoted $c_k$.
+
+## Mean Encoder
+
+The mean encoding method is for binary and continuous target variables. Each category level is encoded as:
+
+$$
+\text{MeanEncoder}(c_k)=\frac{\sum_{i=1}^nY_iI(X_i=c_k)}{\sum_{i=1}^nI(X_i=c_k)}
+$$
+
+The category level $c_k$ is encoded as the mean of the target variables with categorical predictors with that level.
+
+## Target Encoder
+
+The target encoding method combines mean encoding with a prior encoding. Each category level is encoded as:
+
+$$
+\text{TargetEncoder}(c_k)=\lambda\cdot\text{MeanEncoder}(c_k)+(1-\lambda)\overline{Y}
+$$
+
+where
+
+$$
+\lambda=\left[1+\exp\left(-\frac{n-\texttt{min_samples_leaf}}{\texttt{smoothing}}\right)\right]^{-1}
+$$
+
+```python
+import category_encoders as ce
+
+ce.target_encoder.TargetEncoder(min_samples_leaf=1, smoothing=1.0)
+```
+
+## M-Estimate and James-Stein Encoder
+
+The M-estimate encoding and James-Stein encoding methods are similar to target encoding. The difference is in how $\lambda$ is defined.
+
+1. **M-Estimate Encoding**: uses Empirical Bayes
+2. **James-Stein Encoding**: uses $\mathbb{V}[Y|X=c_k]$ and $\mathbb{V}[Y]$
+
+```python
+import category_encoders as ce
+
+ce.m_estimate.MEstimateEncoder()
+ce.james_stein.JamesSteinEncoder()
+```
+
+## Likelihood Encoder
+
+The likelihood encoding method uses a model (e.g GLMM) to encode each categorical level. The GLMM is defined as:
+
+$$
+(Y_i\mid X_i=c_k)=\mu+b_k+\epsilon_{ik}
+$$
+
+where $b_k$ and $\epsilon_{ik}$ are independent zero-mean Gaussian random variables. Each category level is encoded as:
+
+$$
+\text{GLMMEncoder}(c_k)=\hat{\mu}+\hat{b}_k
+$$
+
+```python
+import category_encoders as ce
+
+ce.glmm.GLMMEncoder()
+```
+
+## Hashing Encoder
+
+The hash encoding method uses a `hash_method` to transform $N_c$ categorical values to $N_n$ numerical (integer) values. Note that $N_n$ is often much smaller than $N_c$. The hash encoding method then one-hot encodes the integer values.
+
+Some information is lost due to **collisions** when multiple categorical values are transformed to a single numeric value.
+
+```python
+import category_encoders as ce
+
+ce.hashing.HashingEncoder(hash_method='md5')
+```
+
+## Weight of Evidence (WOE) Encoder
+
+The WOE encoding method is for binary target variables. Each category value is encoded as:
+
+$$
+\text{WOEEncoder}(c_k)=\ln\left(\frac{\hat{p}(X=c_k\mid Y=1)}{\hat{p}(X=c_k\mid Y=0)}\right)
+$$
+
+where 
+
+$$
+\hat{p}(X=c_k\mid Y=j)=\frac{\sum_{j=1}^nI(X_j=c_k,Y_j=j)}{\sum_{j=1}^nI(Y=j)}
+$$
+
+```python
+import category_encoders as ce
+
+ce.woe.WOEEncoder()
+```
+
+## Entity Embeddings
+
+The entity embedding method 'embeds' categorical predictors into a Euclidean space using neural networks. The method is analugous to word embedding in the field of natural language processing (e.g. Word2Vec).
+
+There is currently no python module for entity embedding with the `Pipeline` and `ColumnTransformer` classes
+
+## Entity Embeddings with Skorch
+
+Using [Skorch](https://skorch.readthedocs.io/en/stable/) you can create an sklearn model with the usual API
+
+```python
+from skorch import NeuralNetBinaryClassifier
+
+net = NeuralNetBinaryClassifier(
+    module=EmbeddingClassification,
+    module__num_output_classes=1, 
+    module__num_cat_classes=10,
+    iterator_train__shuffle=True
+)
+
+net.fit(X, y)
+```
+
+Find [here](https://gist.github.com/jonnylaw/774d276c1875c88d9d5790d47dc231cd) an implementation.
