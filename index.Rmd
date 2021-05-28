@@ -102,14 +102,14 @@ ce.glmm.GLMMEncoder()
 
 ## Hashing Encoder
 
-The hash encoding method uses a `hash_method` to transform $N_c$ categorical values to $N_n$ numerical (integer) values. Note that $N_n$ is often much smaller than $N_c$. The hash encoding method then one-hot encodes the integer values.
+The hash encoding method uses a `hash_method` to transform $N_c$ categorical values to $N_n=2^\texttt{n_components}$ numerical (integer) values. Note that $N_n$ is often much smaller than $N_c$. The hash encoding method then one-hot encodes the integer values.
 
 Some information is lost due to **collisions** when multiple categorical values are transformed to a single numeric value.
 
 ```python
 import category_encoders as ce
 
-ce.hashing.HashingEncoder(hash_method='md5')
+ce.hashing.HashingEncoder(hash_method='md5', n_components=8)
 ```
 
 ## Weight of Evidence (WOE) Encoder
