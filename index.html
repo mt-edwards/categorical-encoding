@@ -176,13 +176,13 @@ slide:not(.current) .plotly.html-widget{
 
 <slide class=""><hgroup><h2>Introduction</h2></hgroup><article  id="introduction">
 
-<p>Many Machine Learning (ML) models require numerical predictors. Exceptions include tree-based algorithms (e.g. Random Forest, XGBoost). Consequently, categorical predictors are <strong>encoded</strong> into numerical predictors during <strong>pre-processing</strong>.</p>
+<p>Many Machine Learning (ML) models require numerical predictors. Exceptions include tree-based algorithms (e.g. Random Forest, XGBoost). So categorical predictors are <strong>encoded</strong> into numerical predictors during <strong>pre-processing</strong>.</p>
 
 <p>When the number of levels of a categorical predictor is small, methods such as:</p>
 
 <ol>
-<li>One-hot Encoding (<code>sklearn.preprocessing.OneHotEncoder()</code>)</li>
-<li>Ordinal Encoding (<code>sklearn.preprocessing.Ordinalencoder()</code>)</li>
+<li>One-hot Encoder: <code>sklearn.preprocessing.OneHotEncoder()</code></li>
+<li>Ordinal Encoder: <code>sklearn.preprocessing.Ordinalencoder()</code></li>
 </ol>
 
 <p>are usually sufficient. However, when the number of levels of a categorical predictor is large other methods are required.</p>
@@ -194,10 +194,10 @@ slide:not(.current) .plotly.html-widget{
 <ol>
 <li>Mean Encoder</li>
 <li>Target Encoder</li>
-<li>M-Estimation and James-Stein Encoder</li>
+<li>M-Estimation Encoder</li>
 <li>Likelihood Encoder</li>
 <li>Hashing Encoder</li>
-<li>Weight of Evidence (WOE) Encoder</li>
+<li>Weight of Evidence Encoder</li>
 <li>Entity Encoder</li>
 </ol>
 
@@ -209,7 +209,7 @@ slide:not(.current) .plotly.html-widget{
 <li>\(n\) is the number of data points</li>
 <li>\(\bar{y}\) is the mean of the target variables \(y_i\)</li>
 <li>\(n_k\) is the number of data points where \(x_i=c_k\)</li>
-<li>\(\bar{y}_k\) is the mean of the target variables where \(x_i=c_k\)</li>
+<li>\(\bar{y}_k\) is the mean of the target variables \(y_i\) where \(x_i=c_k\)</li>
 </ul>
 
 </article></slide><slide class=""><hgroup><h2>Mean Encoder</h2></hgroup><article  id="mean-encoder">
@@ -242,35 +242,35 @@ ce.m_estimate.MEstimateEncoder(m=1.0)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Likelihood Encoder</h2></hgroup><article  id="likelihood-encoder">
 
-<p>The likelihood encoding method uses a model’s predictions to encode each categorical level. Mean encoding and m-estimate encoding are special cases of likelihood encoding for continuous target variables:</p>
+<p>The likelihood encoding method uses a model’s predictions to encode each categorical level. Mean encoding and m-estimate encoding are special cases of likelihood encoding:</p>
 
 <ol>
-<li><strong>Mean Encoding</strong>:
+<li><strong>Mean Encoder</strong>:
 
 <ul>
 <li>\(Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)\)</li>
 <li>\(\text{MeanEncoder}(c_k)=\hat{\mu}_k\) (MLE)</li>
 </ul></li>
-<li><strong>M-Estimate Encoding</strong>:
+<li><strong>M-Estimate Encoder</strong>:
 
 <ul>
-<li>\(Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)\) and \(\mu_k\sim N(\bar{y},\sigma^2/m)\)</li>
+<li>\(Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)\) and \(\mu_k\sim N(\bar{y},1/m)\)</li>
 <li>\(\text{MEstimateEncoder}(c_k)=\hat{\mu}_k\) (MAP)</li>
 </ul></li>
 </ol>
 
 </article></slide><slide class=""><hgroup><h2>GLMM Encoding</h2></hgroup><article  id="glmm-encoding">
 
-<p>The GLMM encoding method uses the Generalised Linear Mixed Model for likelihood encoding:</p>
+<p>The Generalised Linear Mixed Model (GLMM) encoding method uses the GLMM for likelihood encoding. For continuous target variables the GLMM model is defined as:</p>
 
 <p>\[
-(Y_i\mid X_i=c_k)=\mu+b_k+\epsilon_{ik}
+Y_i\mid X_i=c_k,u_k\sim N(\mu+u_k,\sigma^2)\quad\text{and}\quad u_k\sim N(0, \tau^2)
 \]</p>
 
-<p>where \(b_k\) and \(\epsilon_{ik}\) are independent zero-mean Gaussian random variables. Each category level is encoded as:</p>
+<p>Each category level is encoded as:</p>
 
 <p>\[
-\text{GLMMEncoder}(c_k)=\hat{\mu}+\hat{b}_k
+\text{GLMMEncoder}(c_k)=\hat{\mu}+\hat{u}_k
 \]</p>
 
 <pre class = 'prettyprint lang-python'>import category_encoders as ce
@@ -293,9 +293,9 @@ N_n=2^\texttt{n_components}
 
 ce.hashing.HashingEncoder(hash_method=&#39;md5&#39;, n_components=8)</pre>
 
-</article></slide><slide class=""><hgroup><h2>Weight of Evidence (WOE) Encoder</h2></hgroup><article  id="weight-of-evidence-woe-encoder">
+</article></slide><slide class=""><hgroup><h2>Weight of Evidence Encoder</h2></hgroup><article  id="weight-of-evidence-encoder">
 
-<p>The WOE encoding method is for binary target variables. Each category value is encoded as:</p>
+<p>The weight of evidence encoding method is for binary target variables. Each category level is encoded as:</p>
 
 <p>\[
 \text{WOEEncoder}(c_k)=\ln\left(\frac{\hat{p}(X=c_k\mid Y=1)}{\hat{p}(X=c_k\mid Y=0)}\right)
@@ -313,7 +313,7 @@ ce.woe.WOEEncoder()</pre>
 
 </article></slide><slide class=""><hgroup><h2>Entity Embeddings</h2></hgroup><article  id="entity-embeddings">
 
-<p>The entity embedding method &lsquo;embeds&rsquo; categorical predictors into a Euclidean space using neural networks. The method is analugous to word embedding in the field of natural language processing (e.g. Word2Vec).</p>
+<p>The entity embedding method &lsquo;embeds&rsquo; categorical predictors into a Euclidean space using neural networks. The method is analogous to word embedding in the field of natural language processing (e.g. Word2Vec).</p>
 
 <p>There is currently no python module for entity embedding with the <code>Pipeline</code> and <code>ColumnTransformer</code> classes</p>
 

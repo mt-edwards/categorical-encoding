@@ -11,12 +11,12 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Introduction
 
-Many Machine Learning (ML) models require numerical predictors. Exceptions include tree-based algorithms (e.g. Random Forest, XGBoost). Consequently, categorical predictors are **encoded** into numerical predictors during **pre-processing**. 
+Many Machine Learning (ML) models require numerical predictors. Exceptions include tree-based algorithms (e.g. Random Forest, XGBoost). So categorical predictors are **encoded** into numerical predictors during **pre-processing**. 
 
 When the number of levels of a categorical predictor is small, methods such as:
 
-1. One-hot Encoding (`sklearn.preprocessing.OneHotEncoder()`) 
-2. Ordinal Encoding (`sklearn.preprocessing.Ordinalencoder()`)
+1. One-hot Encoder: `sklearn.preprocessing.OneHotEncoder()`
+2. Ordinal Encoder: `sklearn.preprocessing.Ordinalencoder()`
 
 are usually sufficient. However, when the number of levels of a categorical predictor is large other methods are required.
 
@@ -26,10 +26,10 @@ The most common categorical encoding methods for a large number of levels are:
 
 1. Mean Encoder
 2. Target Encoder
-3. M-Estimation and James-Stein Encoder
+3. M-Estimation Encoder
 3. Likelihood Encoder
 4. Hashing Encoder
-5. Weight of Evidence (WOE) Encoder
+5. Weight of Evidence Encoder
 6. Entity Encoder
 
 ## Notation
@@ -39,7 +39,7 @@ Consider a data set $\{(x_1,y_1),\dots,(x_n,y_n)\}$ where $x_i$ is a categorical
 - $n$ is the number of data points
 - $\bar{y}$ is the mean of the target variables $y_i$
 - $n_k$ is the number of data points where $x_i=c_k$
-- $\bar{y}_k$ is the mean of the target variables where $x_i=c_k$
+- $\bar{y}_k$ is the mean of the target variables $y_i$ where $x_i=c_k$
 
 ## Mean Encoder
 
@@ -73,27 +73,27 @@ ce.m_estimate.MEstimateEncoder(m=1.0)
 
 ## Likelihood Encoder
 
-The likelihood encoding method uses a model's predictions to encode each categorical level. Mean encoding and m-estimate encoding are special cases of likelihood encoding for continuous target variables:
+The likelihood encoding method uses a model's predictions to encode each categorical level. Mean encoding and m-estimate encoding are special cases of likelihood encoding:
 
-1. **Mean Encoding**: 
+1. **Mean Encoder**: 
     + $Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)$
     + $\text{MeanEncoder}(c_k)=\hat{\mu}_k$ (MLE)
-2. **M-Estimate Encoding**: 
-    + $Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)$ and $\mu_k\sim N(\bar{y},\sigma^2/m)$
+2. **M-Estimate Encoder**: 
+    + $Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)$ and $\mu_k\sim N(\bar{y},1/m)$
     + $\text{MEstimateEncoder}(c_k)=\hat{\mu}_k$ (MAP)
 
 ## GLMM Encoding
 
-The GLMM encoding method uses the Generalised Linear Mixed Model for likelihood encoding:
+The Generalised Linear Mixed Model (GLMM) encoding method uses the GLMM for likelihood encoding. For continuous target variables the GLMM model is defined as:
 
 $$
-(Y_i\mid X_i=c_k)=\mu+b_k+\epsilon_{ik}
+Y_i\mid X_i=c_k,u_k\sim N(\mu+u_k,\sigma^2)\quad\text{and}\quad u_k\sim N(0, \tau^2)
 $$
 
-where $b_k$ and $\epsilon_{ik}$ are independent zero-mean Gaussian random variables. Each category level is encoded as:
+Each category level is encoded as:
 
 $$
-\text{GLMMEncoder}(c_k)=\hat{\mu}+\hat{b}_k
+\text{GLMMEncoder}(c_k)=\hat{\mu}+\hat{u}_k
 $$
 
 ```python
@@ -120,9 +120,9 @@ import category_encoders as ce
 ce.hashing.HashingEncoder(hash_method='md5', n_components=8)
 ```
 
-## Weight of Evidence (WOE) Encoder
+## Weight of Evidence Encoder
 
-The WOE encoding method is for binary target variables. Each category value is encoded as:
+The weight of evidence encoding method is for binary target variables. Each category level is encoded as:
 
 $$
 \text{WOEEncoder}(c_k)=\ln\left(\frac{\hat{p}(X=c_k\mid Y=1)}{\hat{p}(X=c_k\mid Y=0)}\right)
@@ -142,7 +142,7 @@ ce.woe.WOEEncoder()
 
 ## Entity Embeddings
 
-The entity embedding method 'embeds' categorical predictors into a Euclidean space using neural networks. The method is analugous to word embedding in the field of natural language processing (e.g. Word2Vec).
+The entity embedding method 'embeds' categorical predictors into a Euclidean space using neural networks. The method is analogous to word embedding in the field of natural language processing (e.g. Word2Vec).
 
 There is currently no python module for entity embedding with the `Pipeline` and `ColumnTransformer` classes
 
