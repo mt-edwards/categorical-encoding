@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Categorical Embeddings</title>
+  <title>Categorical Encoding</title>
 
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="chrome=1">
@@ -19,7 +19,7 @@
     var SLIDE_CONFIG = {
       // Slide settings
       settings: {
-                title: 'Categorical Embeddings',
+                title: 'Categorical Encoding',
                         useBuilds: true,
         usePrettify: true,
         enableSlideAreas: true,
@@ -203,53 +203,65 @@ slide:not(.current) .plotly.html-widget{
 
 </article></slide><slide class=""><hgroup><h2>Notation</h2></hgroup><article  id="notation">
 
-<p>Consider a data set \(\{(X_1,Y_1),\dots,(X_n,Y_n)\}\) where \(X_i\) is a categorical predictor and \(Y_i\) is a binary or continuous target variable. An arbitrary categorical level is denoted \(c_k\).</p>
+<p>Consider a data set \(\{(x_1,y_1),\dots,(x_n,y_n)\}\) where \(x_i\) is a categorical predictor and \(y_i\) is a binary or continuous target variable. An arbitrary categorical level is denoted \(c_k\).</p>
+
+<ul>
+<li>\(n\) is the number of data points</li>
+<li>\(\bar{y}\) is the mean of the target variables \(y_i\)</li>
+<li>\(n_k\) is the number of data points where \(x_i=c_k\)</li>
+<li>\(\bar{y}_k\) is the mean of the target variables where \(x_i=c_k\)</li>
+</ul>
 
 </article></slide><slide class=""><hgroup><h2>Mean Encoder</h2></hgroup><article  id="mean-encoder">
 
 <p>The mean encoding method is for binary and continuous target variables. Each category level is encoded as:</p>
 
 <p>\[
-\text{MeanEncoder}(c_k)=\frac{\sum_{i=1}^nY_iI(X_i=c_k)}{\sum_{i=1}^nI(X_i=c_k)}
+\text{MeanEncoder}(c_k)=\bar{y}_k
 \]</p>
 
-<p>The category level \(c_k\) is encoded as the mean of the target variables with categorical predictors with that level.</p>
+<p>The category level \(c_k\) is encoded as the mean of the target variables where \(x_i=c_k\).</p>
 
-</article></slide><slide class=""><hgroup><h2>Target Encoder</h2></hgroup><article  id="target-encoder">
+</article></slide><slide class=""><hgroup><h2>M-Estimate Encoder</h2></hgroup><article  id="m-estimate-encoder">
 
-<p>The target encoding method combines mean encoding with a prior encoding. Each category level is encoded as:</p>
+<p>The m-estimate encoding method combines mean encoding with a prior encoding. Each category level is encoded as:</p>
 
 <p>\[
-\text{TargetEncoder}(c_k)=\lambda\cdot\text{MeanEncoder}(c_k)+(1-\lambda)\overline{Y}
+\text{TargetEncoder}(c_k)=\lambda_k\cdot\text{MeanEncoder}(c_k)+(1-\lambda_k)\bar{y}
 \]</p>
 
 <p>where</p>
 
 <p>\[
-\lambda=\left[1+\exp\left(-\frac{n-\texttt{min_samples_leaf}}{\texttt{smoothing}}\right)\right]^{-1}
+\lambda_k=\frac{n_k}{m+n_k}
 \]</p>
 
 <pre class = 'prettyprint lang-python'>import category_encoders as ce
 
-ce.target_encoder.TargetEncoder(min_samples_leaf=1, smoothing=1.0)</pre>
-
-</article></slide><slide class=""><hgroup><h2>M-Estimate and James-Stein Encoder</h2></hgroup><article  id="m-estimate-and-james-stein-encoder">
-
-<p>The M-estimate encoding and James-Stein encoding methods are similar to target encoding. The difference is in how \(\lambda\) is defined.</p>
-
-<ol>
-<li><strong>M-Estimate Encoding</strong>: uses Empirical Bayes</li>
-<li><strong>James-Stein Encoding</strong>: uses \(\mathbb{V}[Y|X=c_k]\) and \(\mathbb{V}[Y]\)</li>
-</ol>
-
-<pre class = 'prettyprint lang-python'>import category_encoders as ce
-
-ce.m_estimate.MEstimateEncoder()
-ce.james_stein.JamesSteinEncoder()</pre>
+ce.m_estimate.MEstimateEncoder(m=1.0)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Likelihood Encoder</h2></hgroup><article  id="likelihood-encoder">
 
-<p>The likelihood encoding method uses a model (e.g GLMM) to encode each categorical level. The GLMM is defined as:</p>
+<p>The likelihood encoding method uses a model’s predictions to encode each categorical level. Mean encoding and m-estimate encoding are special cases of likelihood encoding for continuous target variables:</p>
+
+<ol>
+<li><strong>Mean Encoding</strong>:
+
+<ul>
+<li>\(Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)\)</li>
+<li>\(\text{MeanEncoder}(c_k)=\hat{\mu}_k\) (MLE)</li>
+</ul></li>
+<li><strong>M-Estimate Encoding</strong>:
+
+<ul>
+<li>\(Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)\) and \(\mu_k\sim N(\bar{y},\sigma^2/m)\)</li>
+<li>\(\text{MEstimateEncoder}(c_k)=\hat{\mu}_k\) (MAP)</li>
+</ul></li>
+</ol>
+
+</article></slide><slide class=""><hgroup><h2>GLMM Encoding</h2></hgroup><article  id="glmm-encoding">
+
+<p>The GLMM encoding method uses the Generalised Linear Mixed Model for likelihood encoding:</p>
 
 <p>\[
 (Y_i\mid X_i=c_k)=\mu+b_k+\epsilon_{ik}
@@ -267,7 +279,13 @@ ce.glmm.GLMMEncoder()</pre>
 
 </article></slide><slide class=""><hgroup><h2>Hashing Encoder</h2></hgroup><article  id="hashing-encoder">
 
-<p>The hash encoding method uses a <code>hash_method</code> to transform \(N_c\) categorical values to \(N_n=2^\texttt{n_components}\) numerical (integer) values. Note that \(N_n\) is often much smaller than \(N_c\). The hash encoding method then one-hot encodes the integer values.</p>
+<p>The hash encoding method uses a <code>hash_method</code> to transform \(N_c\) categorical values to</p>
+
+<p>\[
+N_n=2^\texttt{n_components}
+\]</p>
+
+<p>numerical (integer) values. Note that \(N_n\) is often much smaller than \(N_c\). The hash encoding method then one-hot encodes the integer values.</p>
 
 <p>Some information is lost due to <strong>collisions</strong> when multiple categorical values are transformed to a single numeric value.</p>
 
@@ -299,22 +317,14 @@ ce.woe.WOEEncoder()</pre>
 
 <p>There is currently no python module for entity embedding with the <code>Pipeline</code> and <code>ColumnTransformer</code> classes</p>
 
-</article></slide><slide class=""><hgroup><h2>Entity Embeddings with Skorch</h2></hgroup><article  id="entity-embeddings-with-skorch">
+</article></slide><slide class=""><hgroup><h2>Overview.</h2></hgroup><article  id="overview.">
 
-<p>Using <a href='https://skorch.readthedocs.io/en/stable/' title=''>Skorch</a> you can create an sklearn model with the usual API</p>
-
-<pre class = 'prettyprint lang-python'>from skorch import NeuralNetBinaryClassifier
-
-net = NeuralNetBinaryClassifier(
-    module=EmbeddingClassification,
-    module__num_output_classes=1, 
-    module__num_cat_classes=10,
-    iterator_train__shuffle=True
-)
-
-net.fit(X, y)</pre>
-
-<p>Find <a href='https://gist.github.com/jonnylaw/774d276c1875c88d9d5790d47dc231cd' title=''>here</a> an implementation.</p></article></slide>
+<ol>
+<li><strong>Likelihood Encoding</strong>: dense, uncompressed</li>
+<li><strong>Hashing Encoding</strong>: sparse, compressed</li>
+<li><strong>Weight of Evidence</strong>: dense, uncompressed</li>
+<li><strong>Entity Embedding</strong>: dense, compressed</li>
+</ol></article></slide>
 
 
   <slide class="backdrop"></slide>

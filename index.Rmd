@@ -1,5 +1,5 @@
 ---
-title: "Categorical Embeddings"
+title: "Categorical Encoding"
 author: "Matthew Edwards"
 date: "24/05/2021"
 output: ioslides_presentation
@@ -34,55 +34,57 @@ The most common categorical encoding methods for a large number of levels are:
 
 ## Notation
 
-Consider a data set $\{(X_1,Y_1),\dots,(X_n,Y_n)\}$ where $X_i$ is a categorical predictor and $Y_i$ is a binary or continuous target variable. An arbitrary categorical level is denoted $c_k$.
+Consider a data set $\{(x_1,y_1),\dots,(x_n,y_n)\}$ where $x_i$ is a categorical predictor and $y_i$ is a binary or continuous target variable. An arbitrary categorical level is denoted $c_k$.
+
+- $n$ is the number of data points
+- $\bar{y}$ is the mean of the target variables $y_i$
+- $n_k$ is the number of data points where $x_i=c_k$
+- $\bar{y}_k$ is the mean of the target variables where $x_i=c_k$
 
 ## Mean Encoder
 
 The mean encoding method is for binary and continuous target variables. Each category level is encoded as:
 
 $$
-\text{MeanEncoder}(c_k)=\frac{\sum_{i=1}^nY_iI(X_i=c_k)}{\sum_{i=1}^nI(X_i=c_k)}
+\text{MeanEncoder}(c_k)=\bar{y}_k
 $$
 
-The category level $c_k$ is encoded as the mean of the target variables with categorical predictors with that level.
+The category level $c_k$ is encoded as the mean of the target variables where $x_i=c_k$.
 
-## Target Encoder
+## M-Estimate Encoder
 
-The target encoding method combines mean encoding with a prior encoding. Each category level is encoded as:
+The m-estimate encoding method combines mean encoding with a prior encoding. Each category level is encoded as:
 
 $$
-\text{TargetEncoder}(c_k)=\lambda\cdot\text{MeanEncoder}(c_k)+(1-\lambda)\overline{Y}
+\text{TargetEncoder}(c_k)=\lambda_k\cdot\text{MeanEncoder}(c_k)+(1-\lambda_k)\bar{y}
 $$
 
 where
 
 $$
-\lambda=\left[1+\exp\left(-\frac{n-\texttt{min_samples_leaf}}{\texttt{smoothing}}\right)\right]^{-1}
+\lambda_k=\frac{n_k}{m+n_k}
 $$
 
 ```python
 import category_encoders as ce
 
-ce.target_encoder.TargetEncoder(min_samples_leaf=1, smoothing=1.0)
-```
-
-## M-Estimate and James-Stein Encoder
-
-The M-estimate encoding and James-Stein encoding methods are similar to target encoding. The difference is in how $\lambda$ is defined.
-
-1. **M-Estimate Encoding**: uses Empirical Bayes
-2. **James-Stein Encoding**: uses $\mathbb{V}[Y|X=c_k]$ and $\mathbb{V}[Y]$
-
-```python
-import category_encoders as ce
-
-ce.m_estimate.MEstimateEncoder()
-ce.james_stein.JamesSteinEncoder()
+ce.m_estimate.MEstimateEncoder(m=1.0)
 ```
 
 ## Likelihood Encoder
 
-The likelihood encoding method uses a model (e.g GLMM) to encode each categorical level. The GLMM is defined as:
+The likelihood encoding method uses a model's predictions to encode each categorical level. Mean encoding and m-estimate encoding are special cases of likelihood encoding for continuous target variables:
+
+1. **Mean Encoding**: 
+    + $Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)$
+    + $\text{MeanEncoder}(c_k)=\hat{\mu}_k$ (MLE)
+2. **M-Estimate Encoding**: 
+    + $Y_i\mid X_i=c_k\sim N(\mu_k,\sigma^2)$ and $\mu_k\sim N(\bar{y},\sigma^2/m)$
+    + $\text{MEstimateEncoder}(c_k)=\hat{\mu}_k$ (MAP)
+
+## GLMM Encoding
+
+The GLMM encoding method uses the Generalised Linear Mixed Model for likelihood encoding:
 
 $$
 (Y_i\mid X_i=c_k)=\mu+b_k+\epsilon_{ik}
@@ -102,7 +104,13 @@ ce.glmm.GLMMEncoder()
 
 ## Hashing Encoder
 
-The hash encoding method uses a `hash_method` to transform $N_c$ categorical values to $N_n=2^\texttt{n_components}$ numerical (integer) values. Note that $N_n$ is often much smaller than $N_c$. The hash encoding method then one-hot encodes the integer values.
+The hash encoding method uses a `hash_method` to transform $N_c$ categorical values to 
+
+$$
+N_n=2^\texttt{n_components}
+$$ 
+
+numerical (integer) values. Note that $N_n$ is often much smaller than $N_c$. The hash encoding method then one-hot encodes the integer values.
 
 Some information is lost due to **collisions** when multiple categorical values are transformed to a single numeric value.
 
@@ -138,21 +146,9 @@ The entity embedding method 'embeds' categorical predictors into a Euclidean spa
 
 There is currently no python module for entity embedding with the `Pipeline` and `ColumnTransformer` classes
 
-## Entity Embeddings with Skorch
+## Overview.
 
-Using [Skorch](https://skorch.readthedocs.io/en/stable/) you can create an sklearn model with the usual API
-
-```python
-from skorch import NeuralNetBinaryClassifier
-
-net = NeuralNetBinaryClassifier(
-    module=EmbeddingClassification,
-    module__num_output_classes=1, 
-    module__num_cat_classes=10,
-    iterator_train__shuffle=True
-)
-
-net.fit(X, y)
-```
-
-Find [here](https://gist.github.com/jonnylaw/774d276c1875c88d9d5790d47dc231cd) an implementation.
+1. **Likelihood Encoding**: dense, uncompressed
+2. **Hashing Encoding**: sparse, compressed
+3. **Weight of Evidence**: dense, uncompressed
+4. **Entity Embedding**: dense, compressed
