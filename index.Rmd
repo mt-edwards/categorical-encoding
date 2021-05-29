@@ -11,14 +11,14 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Introduction
 
-Many Machine Learning (ML) models require numerical predictors. Exceptions include tree-based algorithms (e.g. Random Forest, XGBoost). So categorical predictors are **encoded** into numerical predictors during **pre-processing**. 
+Many Machine Learning models require numerical predictors. Exceptions include tree-based algorithms (e.g. Random Forest, XGBoost). So categorical predictors are **encoded** into numerical predictors during **pre-processing**. 
 
 When the number of levels of a categorical predictor is small, methods such as:
 
-1. One-hot Encoder: `sklearn.preprocessing.OneHotEncoder()`
-2. Ordinal Encoder: `sklearn.preprocessing.Ordinalencoder()`
+1. One-hot Encoding `sklearn.preprocessing.OneHotEncoder()`
+2. Ordinal Encoding `sklearn.preprocessing.Ordinalencoder()`
 
-are usually sufficient. However, when the number of levels of a categorical predictor is large other methods are required.
+are usually sufficient. However, when the number of levels of a categorical predictor is large, other methods are required.
 
 ## Categorical Encoding
 
@@ -49,20 +49,20 @@ $$
 \text{MeanEncoder}(c_k)=\bar{y}_k
 $$
 
-The category level $c_k$ is encoded as the mean of the target variables where $x_i=c_k$.
+The category level $c_k$ is encoded as the mean of the target variables $y_i$ where $x_i=c_k$.
 
 ## M-Estimate Encoder
 
 The m-estimate encoding method combines mean encoding with a prior encoding. Each category level is encoded as:
 
 $$
-\text{TargetEncoder}(c_k)=\lambda_k\cdot\text{MeanEncoder}(c_k)+(1-\lambda_k)\bar{y}
+\text{TargetEncoder}(c_k)=\lambda_k\cdot\text{MeanEncoder}(c_k)+(1-\lambda_k)\cdot\bar{y}
 $$
 
 where
 
 $$
-\lambda_k=\frac{n_k}{m+n_k}
+\lambda_k=\frac{n_k}{\texttt{m}+n_k}
 $$
 
 ```python
@@ -104,7 +104,7 @@ ce.glmm.GLMMEncoder()
 
 ## Hashing Encoder
 
-The hash encoding method uses a `hash_method` to transform $N_c$ categorical values to 
+The hash encoding method uses a $\texttt{hash_method}$ to transform $N_c$ categorical values to 
 
 $$
 N_n=2^\texttt{n_components}
@@ -131,7 +131,7 @@ $$
 where 
 
 $$
-\hat{p}(X=c_k\mid Y=j)=\frac{\sum_{j=1}^nI(X_j=c_k,Y_j=j)}{\sum_{j=1}^nI(Y=j)}
+\hat{p}(X=c_k\mid Y=j)=\frac{\sum_{i=1}^nI(x_i=c_k,y_i=j)}{\sum_{i=1}^nI(y_i=j)}
 $$
 
 ```python
@@ -142,7 +142,7 @@ ce.woe.WOEEncoder()
 
 ## Entity Embeddings
 
-The entity embedding method 'embeds' categorical predictors into a Euclidean space using neural networks. The method is analogous to word embedding in the field of natural language processing (e.g. Word2Vec).
+The entity embedding method 'embeds' categorical predictors using neural networks. The method is analogous to word embedding in the field of natural language processing (e.g. Word2Vec).
 
 There is currently no python module for entity embedding with the `Pipeline` and `ColumnTransformer` classes
 
@@ -150,5 +150,5 @@ There is currently no python module for entity embedding with the `Pipeline` and
 
 1. **Likelihood Encoding**: dense, uncompressed
 2. **Hashing Encoding**: sparse, compressed
-3. **Weight of Evidence**: dense, uncompressed
+3. **Weight of Evidence Encoding**: dense, uncompressed
 4. **Entity Embedding**: dense, compressed

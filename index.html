@@ -176,16 +176,16 @@ slide:not(.current) .plotly.html-widget{
 
 <slide class=""><hgroup><h2>Introduction</h2></hgroup><article  id="introduction">
 
-<p>Many Machine Learning (ML) models require numerical predictors. Exceptions include tree-based algorithms (e.g. Random Forest, XGBoost). So categorical predictors are <strong>encoded</strong> into numerical predictors during <strong>pre-processing</strong>.</p>
+<p>Many Machine Learning models require numerical predictors. Exceptions include tree-based algorithms (e.g. Random Forest, XGBoost). So categorical predictors are <strong>encoded</strong> into numerical predictors during <strong>pre-processing</strong>.</p>
 
 <p>When the number of levels of a categorical predictor is small, methods such as:</p>
 
 <ol>
-<li>One-hot Encoder: <code>sklearn.preprocessing.OneHotEncoder()</code></li>
-<li>Ordinal Encoder: <code>sklearn.preprocessing.Ordinalencoder()</code></li>
+<li>One-hot Encoding <code>sklearn.preprocessing.OneHotEncoder()</code></li>
+<li>Ordinal Encoding <code>sklearn.preprocessing.Ordinalencoder()</code></li>
 </ol>
 
-<p>are usually sufficient. However, when the number of levels of a categorical predictor is large other methods are required.</p>
+<p>are usually sufficient. However, when the number of levels of a categorical predictor is large, other methods are required.</p>
 
 </article></slide><slide class=""><hgroup><h2>Categorical Encoding</h2></hgroup><article  id="categorical-encoding">
 
@@ -220,20 +220,20 @@ slide:not(.current) .plotly.html-widget{
 \text{MeanEncoder}(c_k)=\bar{y}_k
 \]</p>
 
-<p>The category level \(c_k\) is encoded as the mean of the target variables where \(x_i=c_k\).</p>
+<p>The category level \(c_k\) is encoded as the mean of the target variables \(y_i\) where \(x_i=c_k\).</p>
 
 </article></slide><slide class=""><hgroup><h2>M-Estimate Encoder</h2></hgroup><article  id="m-estimate-encoder">
 
 <p>The m-estimate encoding method combines mean encoding with a prior encoding. Each category level is encoded as:</p>
 
 <p>\[
-\text{TargetEncoder}(c_k)=\lambda_k\cdot\text{MeanEncoder}(c_k)+(1-\lambda_k)\bar{y}
+\text{TargetEncoder}(c_k)=\lambda_k\cdot\text{MeanEncoder}(c_k)+(1-\lambda_k)\cdot\bar{y}
 \]</p>
 
 <p>where</p>
 
 <p>\[
-\lambda_k=\frac{n_k}{m+n_k}
+\lambda_k=\frac{n_k}{\texttt{m}+n_k}
 \]</p>
 
 <pre class = 'prettyprint lang-python'>import category_encoders as ce
@@ -279,7 +279,7 @@ ce.glmm.GLMMEncoder()</pre>
 
 </article></slide><slide class=""><hgroup><h2>Hashing Encoder</h2></hgroup><article  id="hashing-encoder">
 
-<p>The hash encoding method uses a <code>hash_method</code> to transform \(N_c\) categorical values to</p>
+<p>The hash encoding method uses a \(\texttt{hash_method}\) to transform \(N_c\) categorical values to</p>
 
 <p>\[
 N_n=2^\texttt{n_components}
@@ -304,7 +304,7 @@ ce.hashing.HashingEncoder(hash_method=&#39;md5&#39;, n_components=8)</pre>
 <p>where</p>
 
 <p>\[
-\hat{p}(X=c_k\mid Y=j)=\frac{\sum_{j=1}^nI(X_j=c_k,Y_j=j)}{\sum_{j=1}^nI(Y=j)}
+\hat{p}(X=c_k\mid Y=j)=\frac{\sum_{i=1}^nI(x_i=c_k,y_i=j)}{\sum_{i=1}^nI(y_i=j)}
 \]</p>
 
 <pre class = 'prettyprint lang-python'>import category_encoders as ce
@@ -313,7 +313,7 @@ ce.woe.WOEEncoder()</pre>
 
 </article></slide><slide class=""><hgroup><h2>Entity Embeddings</h2></hgroup><article  id="entity-embeddings">
 
-<p>The entity embedding method &lsquo;embeds&rsquo; categorical predictors into a Euclidean space using neural networks. The method is analogous to word embedding in the field of natural language processing (e.g. Word2Vec).</p>
+<p>The entity embedding method &lsquo;embeds&rsquo; categorical predictors using neural networks. The method is analogous to word embedding in the field of natural language processing (e.g. Word2Vec).</p>
 
 <p>There is currently no python module for entity embedding with the <code>Pipeline</code> and <code>ColumnTransformer</code> classes</p>
 
@@ -322,7 +322,7 @@ ce.woe.WOEEncoder()</pre>
 <ol>
 <li><strong>Likelihood Encoding</strong>: dense, uncompressed</li>
 <li><strong>Hashing Encoding</strong>: sparse, compressed</li>
-<li><strong>Weight of Evidence</strong>: dense, uncompressed</li>
+<li><strong>Weight of Evidence Encoding</strong>: dense, uncompressed</li>
 <li><strong>Entity Embedding</strong>: dense, compressed</li>
 </ol></article></slide>
 
